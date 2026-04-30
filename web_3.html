@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THỐNG KÊ SỬ DỤNG ĐIỆN THOẠI CHUYỂN ĐỔI ATCCHCM</title>
+    <style>
+        :root {
+            --primary: #4338ca;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 25px; }
+        .container { max-width: 1150px; margin: 0 auto; }
+
+        /* Dashboard Header */
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header-top h2 { font-size: 20px; color: #1e1b4b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .contact-box { background: var(--card); padding: 12px 20px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .contact-box b { color: var(--primary); }
+
+        .card { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 20px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+        input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; transition: 0.2s; }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.1); }
+
+        /* Thanh công cụ: Tìm kiếm & Nút bấm */
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px; }
+        .search-container { flex-grow: 1; position: relative; }
+        .search-container input { padding-left: 35px; background: #fff; }
+        .search-container::before { content: '🔍'; position: absolute; left: 12px; top: 10px; font-size: 14px; }
+
+        .actions { display: flex; gap: 10px; }
+        button { padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; color: white; transition: 0.2s; font-size: 13px; white-space: nowrap; }
+        .btn-add { background: var(--primary); }
+        .btn-print { background: #0f172a; }
+        .btn-excel { background: #10b981; }
+
+        /* Bảng dữ liệu */
+        .table-wrapper { background: white; border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; text-align: left; }
+        th { background: #f8fafc; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .editable { color: var(--primary); font-weight: 500; cursor: pointer; }
+        .editable:empty::after { content: "Nhấp để nhập..."; color: #cbd5e1; font-style: italic; font-weight: 400; }
+        tr:hover { background-color: #fcfdfe; }
+
+        /* Nhãn in (55mm x 20mm) */
+        #printArea { display: none; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; margin: 0; }
+            @page { size: A4; margin: 10mm 5mm; }
+            #printArea { display: grid; grid-template-columns: repeat(3, 62mm); gap: 2mm; justify-content: center; padding-top: 5mm; }
+            .label-item { width: 55mm; height: 20mm; border: 0.1pt solid #000; padding: 2mm; display: flex; flex-direction: column; justify-content: center; page-break-inside: avoid; }
+            .label-title { font-size: 6pt; font-weight: 800; text-transform: uppercase; border-bottom: 0.4pt solid #000; margin-bottom: 1mm; padding-bottom: 0.5mm; text-align: center; }
+            .label-info { font-size: 7.5pt; line-height: 1.4; color: #000; }
+            .label-info b { display: inline-block; width: 11mm; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container no-print">
+    <div class="header-top">
+        <h2>THỐNG KÊ SỬ DỤNG ĐIỆN THOẠI CHUYỂN ĐỔI ATCCHCM</h2>
+        <div class="contact-box">
+            Người phụ trách: <b>Trần Văn Trường</b> <br>
+            Đơn vị: <b>Kỹ thuật CNS/ATM</b>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="form-grid">
+            <div class="form-group"><label>Tên Thiết Bị</label><input type="text" id="inName" value="PANASONIC KX-TS500"></div>
+            <div class="form-group"><label>Mã CCDC</label><input type="text" id="inCode" placeholder="Nhập mã số..."></div>
+            <div class="form-group"><label>Số S/N</label><input type="text" id="inSN" placeholder="Để trống..."></div>
+            <div class="form-group"><label>Vị Trí</label><input type="text" id="inLoc" placeholder="Để trống..."></div>
+        </div>
+        
+        <div class="toolbar">
+            <div class="search-container">
+                <input type="text" id="searchInput" onkeyup="render()" placeholder="Tìm kiếm nhanh...">
+            </div>
+            <div class="actions">
+                <button class="btn-excel" onclick="exportCSV()">Xuất Excel</button>
+                <button class="btn-print" onclick="window.print()">In Tem (55x20mm)</button>
+                <button class="btn-add" onclick="addItem()">+ Thêm Mới</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50px;">STT</th>
+                    <th>Tên Thiết Bị</th>
+                    <th>Mã CCDC</th>
+                    <th>Số S/N</th>
+                    <th>Vị Trí</th>
+                    <th style="width: 50px; text-align: center;">Xóa</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="printArea"></div>
+
+<script>
+    const PASS_KEY = "123456";
+
+    const getBaseData = () => {
+        let items = [];
+        for (let i = 7749; i <= 7796; i++) {
+            items.push({ id: i, name: "PANASONIC KX-TS500", code: "CCA042604070" + i, sn: "", loc: "" });
+        }
+        return items;
+    };
+
+    let inventory = JSON.parse(localStorage.getItem('asset_final_v6')) || getBaseData();
+
+    function addItem() {
+        const name = document.getElementById('inName').value;
+        const code = document.getElementById('inCode').value;
+        const sn = document.getElementById('inSN').value;
+        const loc = document.getElementById('inLoc').value;
+        if(!name || !code) return alert("Vui lòng nhập Tên và Mã CCDC!");
+        inventory.push({ id: Date.now(), name, code, sn, loc });
+        save();
+        document.getElementById('inCode').value = '';
+        document.getElementById('inSN').value = '';
+        document.getElementById('inLoc').value = '';
+    }
+
+    function editField(idx, field) {
+        const val = prompt(`Cập nhật ${field.toUpperCase()}:`, inventory[idx][field]);
+        if (val !== null) { inventory[idx][field] = val; save(); }
+    }
+
+    function deleteItem(id) {
+        const pw = prompt("Vui lòng nhập Password để xóa:");
+        if (pw === PASS_KEY) {
+            inventory = inventory.filter(i => i.id !== id);
+            save();
+        } else if (pw !== null) {
+            alert("Sai Password!");
+        }
+    }
+
+    function save() {
+        localStorage.setItem('asset_final_v6', JSON.stringify(inventory));
+        render();
+    }
+
+    function render() {
+        const tbody = document.getElementById('tableBody');
+        const printArea = document.getElementById('printArea');
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        
+        tbody.innerHTML = ''; 
+        printArea.innerHTML = '';
+
+        const filtered = inventory.filter(item => 
+            item.name.toLowerCase().includes(query) ||
+            item.code.toLowerCase().includes(query) ||
+            item.sn.toLowerCase().includes(query) ||
+            item.loc.toLowerCase().includes(query)
+        );
+
+        filtered.forEach((item, idx) => {
+            const actualIdx = inventory.indexOf(item);
+            tbody.innerHTML += `
+                <tr>
+                    <td>${idx+1}</td>
+                    <td><b>${item.name}</b></td>
+                    <td>${item.code}</td>
+                    <td class="editable" onclick="editField(${actualIdx}, 'sn')">${item.sn}</td>
+                    <td class="editable" onclick="editField(${actualIdx}, 'loc')">${item.loc}</td>
+                    <td style="text-align: center;"><button onclick="deleteItem(${item.id})" style="background:none; color:var(--danger); font-size:18px; padding:0;">&times;</button></td>
+                </tr>`;
+            
+            printArea.innerHTML += `
+                <div class="label-item">
+                    <div class="label-title">${item.name}</div>
+                    <div class="label-info">
+                        <div><b>MÃ:</b>${item.code}</div>
+                        <div><b>S/N:</b>${item.sn}</div>
+                        <div><b>VỊ:</b>${item.loc}</div>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function exportCSV() {
+        let csv = "\ufeffSTT,Thiet Bi,Ma CCDC,S/N,Vi Tri\n";
+        inventory.forEach((i, idx) => csv += `${idx+1},${i.name},${i.code},${i.sn},${i.loc}\n`);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Thong_Ke_Dien_Thoai_ATCCHCM.csv";
+        link.click();
+    }
+
+    render();
+</script>
+</body>
+</html>
